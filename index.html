@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Base Currencies</title>
+		
+		<script type="text/javascript" src="http://d3js.org/d3.v4.js" charset="utf-8"></script>
+    <style type="text/css">
+		p {
+			float: left;
+			padding-right: 100px;
+			padding-left: 100px; 	
+		}
+	</style>
+	</head>
+    <body>
+       <h1>Base Currencies</h1>
+	   <p>Base Currency: <select id="selection">
+			<option value="AUD">AUD</option>
+			<option value="USD">USD</option>
+			<option value="IDR">IDR</option>
+			<option value="BGN">BGN</option>
+			<option value="ILS">ILS</option>
+			<option value="GBP">GBP</option>
+			<option value="DKK">DKK</option>
+			<option value="CAD">CAD</option>
+			<option value="JPY">JPY</option>
+			<option value="HUF">HUF</option>
+			<option value="RON">RON</option>
+			<option value="MYR">MYR</option>
+			<option value="SEK">SEK</option>
+			<option value="SGD">SGD</option>
+			<option value="HKD">HKD</option>
+			<option value="CHF">CHF</option>
+			<option value="KRW">KRW</option>
+			<option value="CNY">CNY</option>
+			<option value="TRY">TRY</option>
+			<option value="HRK">HRK</option>
+			<option value="NZD">NZD</option>
+			<option value="THB">THB</option>
+			<option value="EUR">EUR</option>
+			<option value="NOK">NOK</option>
+			<option value="RUB">RUB</option>
+			<option value="INR">INR</option>
+			<option value="MXN">MXN</option>
+			<option value="CZK">CZK</option>
+			<option value="BRL">BRL</option>
+			<option value="PLN">PLN</option>
+			<option value="PHP">PHP</option>
+			<option value="ZAR">ZAR</option>
+			
+			
+	   </select><form action=""></p>
+  <input type="radio" name="func" id="log">Logarithmic<br>
+  <input type="radio" name="func" id="linear" checked=true> Linear<br>
+  </form>
+    
+			
+       <script type="text/javascript">
+			base_currency = "str1";
+			dataset = [];
+			keys = [0];
+			real_values = [];
+			log_dataset = [];
+			
+			
+					   
+            jsondata = "str";
+            d3.json("exchange_rates.json", function(data) {
+               jsondata=data;
+			   			
+			for (key in jsondata[0].rates){
+				keys.push(key);
+				real_values.push(jsondata[0].rates[key]);
+				
+			}
+			for (i=0; i<real_values.length; i++){
+				if (real_values[i]>=20){
+					dataset.push(20);
+				}
+				else {
+					dataset.push(real_values[i]);
+				}
+			} 			
+			
+		console.log(keys);
+		console.log(dataset);
+		w = 1200;
+		h = 350;
+		padding = 20;
+
+ 		var xScale = d3.scaleBand()          
+                       .domain(d3.range(dataset.length)) 
+               		   .rangeRound([0, w-padding])
+				       .padding(0.2);
+
+        var yScale = d3.scaleLinear()          
+			           .domain([0, d3.max(dataset)]) 
+			           .range([h-3*padding, 0]);   
+		
+		var pointScale = d3.scalePoint()
+			.domain(keys)
+			.range([0, w-3*padding]);
+				
+		var zScale = d3.scaleLinear()          
+			           .domain([0, d3.max(dataset)])  
+			           .range([0, h-3*padding]); 
+
+		var xAxis = d3.axisBottom(pointScale);
+
+
+		
+		var yAxis = d3.axisLeft(yScale)     
+  		  .ticks(5);
+		
+		svg = d3.select("body")
+            		.append("svg")
+					.attr("class", "svg1")
+            		.attr("width", w)
+            		.attr("height", h);
+		
+		svg.selectAll("rect")
+   		.data(dataset)
+   		.enter()
+   		.append("rect")
+		.attr("x", function(d, i) {                     
+   			 return padding + xScale(i);
+		})
+   		.attr("y", function(d) {
+			
+		    return h - zScale(d) - padding;
+		})
+   		.attr("width", xScale.bandwidth()) 
+   		.attr("height", function(d) {
+						return zScale(d);   
+		})
+		.attr("fill", "DodgerBlue");
+
+		svg.selectAll("text")  
+   		.data(dataset)
+   		.enter()
+  		.append("text")
+ 		.text(function(d,i) {
+					if (d == 20){
+						return real_values[i];
+					}
+        	      
+   		})
+  		.attr("x", function(d, i) {
+     			return padding + xScale(i) + xScale.bandwidth() / 2;   // text aligned in the middle of the bar
+  		})
+ 		.attr("text-anchor", "middle")   
+ 		.attr("y", function(d) {
+        		return h - zScale(d) - 20;  
+   		})
+   		.attr("font-family", "sans-serif")   
+   		.attr("font-size", "11px")
+   		.attr("fill", "black");		
+        
+		//Create X axis
+          svg.append("g") 
+               .attr("class", "x axis") 
+               .attr("transform", "translate("+padding+"," + (h - padding) + ")")  
+               .call(xAxis);  
+
+		//Create Y axis
+		svg.append("g")
+    		   .attr("class", "y axis")
+    		   .attr("transform", "translate(" + (5+padding) + "," + 2*padding +")")  // shift the axis to right
+    		   .call(yAxis);
+			   
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		
+		document.getElementById("selection").onchange = function(){
+				
+				base_currency = document.getElementById("selection").value;	
+				console.log(base_currency);
+			log_dataset = [];	
+			dataset = [];
+			keys = [0];
+			real_values = []
+			console.log(jsondata);
+			for(i = 0; i<jsondata.length; i++){
+				if(jsondata[i].base == base_currency){
+					
+					for (key in jsondata[i].rates){
+						keys.push(key);
+						real_values.push(jsondata[i].rates[key]);
+					}
+				}
+			}
+			
+			for (i=0; i<real_values.length; i++){
+				log_dataset.push(Math.log(real_values[i]));
+				if (real_values[i]>=20){
+					dataset.push(20);
+				}
+				else {
+					dataset.push(real_values[i]);
+				}
+			} 			
+			console.log(dataset)
+			
+		if(document.getElementById("linear").checked==true){ 
+			yScale.domain([0, d3.max(dataset)]);
+			pointScale.domain(keys);
+			zScale.domain([0, d3.max(dataset)]);
+			
+			svg.selectAll("rect")
+			.data(dataset)
+			.transition()  
+			   .delay(function(d, i) {
+    				return (i / dataset.length)* 1000 ;
+			   })
+               .duration(500)  
+               .ease(d3.easeLinear)
+			.attr("x", function(d, i) {                     
+				return padding + xScale(i);
+			})
+			.attr("y", function(d) {
+			
+		    return h - zScale(d) - padding; 
+			})
+			.attr("height", function(d) {
+						return zScale(d);  
+			})
+		.attr("fill", "DodgerBlue");
+
+		svg.selectAll("text")   
+   		.data(dataset)
+		.transition()  
+		.delay(function(d, i) {
+    				return (i / dataset.length)* 1000 ;
+			   })
+			   .duration(1000)   
+			   .ease(d3.easeLinear)
+   		.text(function(d,i) {
+					if (d == 20){
+						return real_values[i];
+					}
+        	      
+   		})
+  		.attr("y", function(d) {
+        		return h - zScale(d) - 20;  
+				
+				})
+		//Update X axis
+			  svg.select(".x.axis")
+			  .transition()
+		         .duration(1000)
+			     .call(xAxis);
+				 
+		//Update Y axis
+			  svg.select(".y.axis")
+			  .transition()
+		         .duration(1000)
+			     .call(yAxis);
+					}
+		else if(document.getElementById("log").checked==true){
+			console.log("log_dataset");
+			console.log(log_dataset);
+			yScale.domain([d3.min(log_dataset), d3.max(log_dataset)]);
+			pointScale.domain(keys);
+			zScale.domain([d3.min(log_dataset), d3.max(log_dataset)]);
+			
+			svg.selectAll("rect")
+			.data(log_dataset)
+			.transition()   
+			   .delay(function(d, i) {
+    				return (i / log_dataset.length)* 1000 ;
+			   })
+               .duration(500)  
+               .ease(d3.easeLinear)
+			.attr("x", function(d, i) {                     
+				return padding + xScale(i);
+			})
+			.attr("y", function(d) {
+			
+		    return h - zScale(d) - padding; 
+			})
+			.attr("height", function(d) {
+						return zScale(d);  
+			})
+		.attr("fill", "DodgerBlue");
+
+		svg.selectAll("text")  
+   		.data(log_dataset)
+		.transition()   
+		.delay(function(d, i) {
+    				return (i / log_dataset.length)* 1000 ;
+			   })
+			   .duration(1000)  
+			   .ease(d3.easeLinear)
+   		.text(function(d,i) {
+					if (d == 20){
+						return real_values[i];
+					}
+        	      
+   		})
+  		.attr("y", function(d) {
+        		return h - zScale(d) - 20;  
+				
+				})
+		//Update X axis
+			  svg.select(".x.axis")
+			  .transition()
+		         .duration(1000)
+			     .call(xAxis);
+				 
+		//Update Y axis
+			  svg.select(".y.axis")
+			  .transition()
+		         .duration(1000)
+			     .call(yAxis);
+		}
+   		d3.select("#log").on("click", function(){
+			console.log(log_dataset);
+			
+			yScale.domain([d3.min(log_dataset), d3.max(log_dataset)]).range([h-3*padding, 0]);
+			zScale.domain([d3.min(log_dataset), d3.max(log_dataset)]).range([0, h-3*padding]);
+			svg.select(".y.axis")
+			.transition()
+		         .duration(1000)
+			     .call(yAxis);
+			svg.selectAll("rect")
+			.data(log_dataset)
+			.transition()   
+			   .delay(function(d, i) {
+    				return (i / log_dataset.length)* 1000 ;
+			   })
+               .duration(500)   
+			   .ease(d3.easeLinear)
+			.attr("x", function(d, i) {                     
+				return padding + xScale(i);
+			})
+			.attr("y", function(d) {
+			
+		    return h - zScale(d) - padding; 
+			})
+			.attr("height", function(d) {
+						return zScale(d);   
+			})
+		.attr("fill", "DodgerBlue");
+
+		svg.selectAll("text")   
+   		.data(log_dataset)
+   		.text(function(d,i) {
+					if (d == 20){
+						return real_values[i];
+					}
+        	      
+   		})
+  		.attr("y", function(d) {
+        		return h - zScale(d) - 20;  
+				
+				})
+		})		
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		
+		d3.select("#linear").on("click", function(){
+						
+			yScale.domain([0, d3.max(dataset)]).range([h-3*padding, 0]);
+			zScale.domain([0, d3.max(dataset)]).range([0, h-3*padding]);
+			svg.select(".y.axis")
+			.transition()
+		         .duration(1000)
+			     .call(yAxis);
+			svg.selectAll("rect")
+			.data(dataset)
+			.transition()  
+			   .delay(function(d, i) {
+    				return (i / dataset.length)* 1000 ;
+			   })
+               .duration(500)  
+			   .ease(d3.easeLinear)
+			.attr("x", function(d, i) {                     
+				return padding + xScale(i);
+			})
+			.attr("y", function(d) {
+			
+		    return h - zScale(d) - padding; 
+			})
+			.attr("height", function(d) {
+						return zScale(d);  
+			})
+		.attr("fill", "DodgerBlue");
+
+		svg.selectAll("text")  
+   		.data(dataset)
+		.transition()   //enable animation
+		.delay(function(d, i) {
+    				return (i / dataset.length)* 1000 ;
+			   })
+			   .duration(1000)   // transition time
+			   .ease(d3.easeLinear)
+   		.text(function(d,i) {
+					if (d == 20){
+						return real_values[i];
+					}
+        	      
+   		})
+  		.attr("y", function(d) {
+        		return h - zScale(d) - 20;  // push the text to the inside of the bar
+				
+				})
+		
+		})
+		
+		}
+   		      
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////						
+		d3.select("#log").on("click", function(){
+			var log_dataset = [];
+			for(i=0; i<real_values.length; i++){
+				log_dataset.push(Math.log(real_values[i]));
+			}
+			
+			yScale.domain([d3.min(log_dataset), d3.max(log_dataset)]).range([h-3*padding, 0]);
+			zScale.domain([d3.min(log_dataset), d3.max(log_dataset)]).range([0, h-3*padding]);
+			svg.select(".y.axis")
+			.transition()
+		         .duration(1000)
+			     .call(yAxis);
+			svg.selectAll("rect")
+			.data(log_dataset)
+			.transition()   //enable animation
+			   .delay(function(d, i) {
+    				return (i / log_dataset.length)* 1000 ;
+			   })
+               .duration(500)   // transition time
+			   .ease(d3.easeLinear)
+			.attr("x", function(d, i) {                     
+				return padding + xScale(i);
+			})
+			.attr("y", function(d) {
+			
+		    return h - zScale(d) - padding;  //Height minus data value so all bars end at the same y plane
+			})
+			.attr("height", function(d) {
+						return zScale(d);   // set bar height propotional to the data value
+			})
+		.attr("fill", "DodgerBlue");
+
+		svg.selectAll("text")   // add the data value a text at the top of the bars
+   		.data(log_dataset)
+   		.text(function(d,i) {
+					if (d == 20){
+						return real_values[i];
+					}
+        	      
+   		})
+  		.attr("y", function(d) {
+        		return h - zScale(d) - 20;  // push the text to the inside of the bar
+				
+				})
+		})		
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////		
+		d3.select("#linear").on("click", function(){
+						
+			yScale.domain([0, d3.max(dataset)]).range([h-3*padding, 0]);
+			zScale.domain([0, d3.max(dataset)]).range([0, h-3*padding]);
+			svg.select(".y.axis")
+			.transition()
+		         .duration(1000)
+			     .call(yAxis);
+			svg.selectAll("rect")
+			.data(dataset)
+			.transition()   //enable animation
+			   .delay(function(d, i) {
+    				return (i / dataset.length)* 1000 ;
+			   })
+               .duration(500)   // transition time
+			   .ease(d3.easeLinear)
+			.attr("x", function(d, i) {                     
+				return padding + xScale(i);
+			})
+			.attr("y", function(d) {
+			
+		    return h - zScale(d) - padding;  //Height minus data value so all bars end at the same y plane
+			})
+			.attr("height", function(d) {
+						return zScale(d);   // set bar height propotional to the data value
+			})
+		.attr("fill", "DodgerBlue");
+
+		svg.selectAll("text")   // add the data value a text at the top of the bars
+   		.data(dataset)
+		.transition()   //enable animation
+		.delay(function(d, i) {
+    				return (i / dataset.length)* 1000 ;
+			   })
+			   .duration(1000)   // transition time
+			   .ease(d3.easeLinear)
+   		.text(function(d,i) {
+					if (d == 20){
+						return real_values[i];
+					}
+        	      
+   		})
+  		.attr("y", function(d) {
+        		return h - zScale(d) - 20;  // push the text to the inside of the bar
+				
+				})
+		
+		})
+		
+		})
+		
+		
+		
+		
+		
+		
+        </script>
+    </body>
+</html>
